@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Chart Comparison Study Admin</title>
+    <link rel="stylesheet" href="../styles.css">
+  </head>
+  <body>
+    <header class="app-header">
+      <div>
+        <p class="eyebrow">Admin</p>
+        <h1>Study Results</h1>
+      </div>
+      <a class="text-link" href="../index.html">Study page</a>
+    </header>
+
+    <main class="app-shell">
+      <section class="study-panel">
+        <div class="section-kicker">Results</div>
+        <h2>Collected Statistics</h2>
+        <p class="prompt">
+          This dashboard reads the configured response CSV when available and includes any locally stored
+          fallback responses from this browser.
+        </p>
+
+        <div class="summary-grid">
+          <div>
+            <span id="participantCount" class="summary-number">0</span>
+            <span>Participants</span>
+          </div>
+          <div>
+            <span id="trialCount" class="summary-number">0</span>
+            <span>Experimental trials</span>
+          </div>
+          <div>
+            <span id="accuracyRate" class="summary-number">0%</span>
+            <span>Exact accuracy</span>
+          </div>
+        </div>
+
+        <div class="admin-grid">
+          <section>
+            <h3>Performance by Condition</h3>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Condition</th>
+                    <th>Trials</th>
+                    <th>Accuracy</th>
+                    <th>Median RT</th>
+                    <th>Confidence</th>
+                  </tr>
+                </thead>
+                <tbody id="conditionRows"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section>
+            <h3>Participants</h3>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Completed</th>
+                    <th>Accuracy</th>
+                    <th>Median RT</th>
+                  </tr>
+                </thead>
+                <tbody id="participantRows"></tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+
+        <div class="actions">
+          <button id="exportAllJson" class="primary" type="button">Export All JSON</button>
+          <button id="exportAllCsv" type="button">Export All CSV</button>
+          <button id="clearResults" class="danger" type="button">Clear Local Results</button>
+        </div>
+      </section>
+    </main>
+
+    <script src="../config.js"></script>
+    <script src="../admin.js"></script>
+  </body>
+</html>

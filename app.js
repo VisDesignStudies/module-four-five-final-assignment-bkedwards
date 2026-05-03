@@ -1,5 +1,6 @@
 const app = document.querySelector("#app");
 const progressBar = document.querySelector("#progressBar");
+const STORAGE_KEY = "chartComparisonStudyResults";
 
 const colors = [
   "#116466",
@@ -87,6 +88,7 @@ const state = {
   literacyIndex: 0,
   trialIndex: 0,
   trials: [],
+  datasetLabelOrders: {},
   participantId: createParticipantId(),
   literacyResponses: [],
   trialResponses: [],
@@ -212,6 +214,7 @@ function showTutorial() {
 }
 
 function buildTrials() {
+  state.datasetLabelOrders = createDatasetLabelOrders();
   const conditions = [
     { chartType: "pie", order: "sorted" },
     { chartType: "pie", order: "random" },
@@ -228,31 +231,34 @@ function buildTrials() {
         difficulty: dataset.difficulty,
         chartType: condition.chartType,
         order: condition.order,
-        data: makeChartData(dataset.values, condition.order)
+        data: makeChartData(dataset.values, condition.order, null, state.datasetLabelOrders[dataset.id])
       });
     });
   });
 
+  const checkOneData = makeChartData([60, 25, 15], "sorted", null, [3, 6, 1]);
+  const checkTwoData = makeChartData([45, 35, 20], "random", [2, 1, 0], [5, 2, 8]);
+  const checkThreeData = makeChartData([20, 55, 25], "random", [0, 2, 1], [7, 4, 0]);
   const checks = [
     {
-      id: "check-select-atlas",
+      id: "check-select-named-category",
       trialType: "engagement-check",
       difficulty: "check",
       chartType: "pie",
       order: "sorted",
-      data: makeChartData([60, 25, 15], "sorted"),
-      forcedAnswer: ["Atlas"],
-      prompt: "Engagement check: select Atlas."
+      data: checkOneData,
+      forcedAnswer: [checkOneData[0].label],
+      prompt: `Engagement check: select ${checkOneData[0].label}.`
     },
     {
-      id: "check-select-beacon-cedar",
+      id: "check-select-two-named-categories",
       trialType: "engagement-check",
       difficulty: "check",
       chartType: "waffle",
       order: "random",
-      data: makeChartData([45, 35, 20], "random", [2, 1, 0]),
-      forcedAnswer: ["Beacon", "Cedar"],
-      prompt: "Engagement check: select Beacon, then Cedar."
+      data: checkTwoData,
+      forcedAnswer: [checkTwoData[1].label, checkTwoData[0].label],
+      prompt: `Engagement check: select ${checkTwoData[1].label}, then ${checkTwoData[0].label}.`
     },
     {
       id: "check-largest",
@@ -260,8 +266,8 @@ function buildTrials() {
       difficulty: "check",
       chartType: "pie",
       order: "random",
-      data: makeChartData([20, 55, 25], "random", [0, 2, 1]),
-      forcedAnswer: ["Beacon"],
+      data: checkThreeData,
+      forcedAnswer: [getCorrectLabels(checkThreeData, 1)[0]],
       prompt: "Engagement check: select the largest category."
     }
   ];
@@ -303,7 +309,6 @@ function showTrial() {
     confidenceValue.textContent = slider.value;
   });
 
-  document.querySelector("#quitDownload").addEventListener("click", () => downloadJson());
   document.querySelector("#trialNext").addEventListener("click", submitTrial);
 }
 
@@ -347,6 +352,7 @@ function submitTrial() {
 
 function showComplete() {
   state.phase = "complete";
+  saveCompletedResult();
   updateProgress();
   cloneTemplate("#completeTemplate");
   const experimental = state.trialResponses.filter((trial) => trial.trialType === "experimental");
@@ -364,12 +370,20 @@ function showComplete() {
   document.querySelector("#restartStudy").addEventListener("click", () => window.location.reload());
 }
 
-function makeChartData(values, order, fixedOrder) {
+function createDatasetLabelOrders() {
+  return datasets.reduce((orders, dataset) => {
+    orders[dataset.id] = shuffle(d3.range(categoryNames.length)).slice(0, dataset.values.length);
+    return orders;
+  }, {});
+}
+
+function makeChartData(values, order, fixedOrder, labelOrder) {
+  const labels = labelOrder || d3.range(values.length);
   const ranked = values
     .map((value, index) => ({
-      label: categoryNames[index],
+      label: categoryNames[labels[index]],
       value,
-      color: colors[index],
+      color: colors[labels[index]],
       originalIndex: index
     }))
     .sort((a, b) => b.value - a.value)
@@ -598,13 +612,51 @@ function createSvg(selector, width, height) {
 }
 
 function downloadJson() {
-  const payload = {
+  const payload = buildResultPayload();
+  downloadFile(`chart-study-${state.participantId}.json`, JSON.stringify(payload, null, 2), "application/json");
+}
+
+function buildResultPayload() {
+  return {
     participantId: state.participantId,
     exportedAt: new Date().toISOString(),
+    completedAt: new Date().toISOString(),
+    datasetLabelOrders: state.datasetLabelOrders,
     literacyResponses: state.literacyResponses,
     trialResponses: state.trialResponses
   };
-  downloadFile(`chart-study-${state.participantId}.json`, JSON.stringify(payload, null, 2), "application/json");
+}
+
+function saveCompletedResult() {
+  const payload = buildResultPayload();
+  const existing = getStoredResults().filter((result) => result.participantId !== payload.participantId);
+  existing.push(payload);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(existing));
+  sendRemoteResult(payload);
+}
+
+function getStoredResults() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+  } catch {
+    return [];
+  }
+}
+
+function sendRemoteResult(payload) {
+  const endpoint = window.STUDY_CONFIG?.responseEndpoint;
+  if (!endpoint) return;
+
+  fetch(endpoint, {
+    method: "POST",
+    mode: "no-cors",
+    headers: {
+      "Content-Type": "text/plain;charset=utf-8"
+    },
+    body: JSON.stringify(payload)
+  }).catch(() => {
+    console.warn("Remote response submission failed. The response remains saved locally.");
+  });
 }
 
 function downloadCsv() {
