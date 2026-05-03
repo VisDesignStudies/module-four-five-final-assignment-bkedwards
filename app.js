@@ -181,7 +181,7 @@ function showTutorial() {
   updateProgress();
   cloneTemplate("#tutorialTemplate");
   const demoData = makeChartData([42, 33, 25], "sorted");
-  drawPie("#tutorialPie", demoData, { width: 260, height: 220, showLegend: true });
+  drawPie("#tutorialPie", demoData, { width: 340, height: 220, showLegend: true, centerX: 96, legendX: 220 });
   drawWaffle("#tutorialWaffle", demoData, { width: 290, height: 220, showLegend: true });
 
   const practice = makeChartData([31, 26, 18, 13, 12], "random", [2, 0, 4, 1, 3]);
@@ -476,7 +476,8 @@ function drawPie(selector, data, options = {}) {
   const height = options.height || 360;
   const radius = Math.min(width * 0.42, height * 0.44);
   const svg = createSvg(selector, width, height);
-  const group = svg.append("g").attr("transform", `translate(${width * 0.36}, ${height / 2})`);
+  const centerX = options.centerX || width * 0.36;
+  const group = svg.append("g").attr("transform", `translate(${centerX}, ${height / 2})`);
   const pie = d3.pie().sort(null).value((d) => d.value);
   const arc = d3.arc().innerRadius(0).outerRadius(radius);
   const labelArc = d3.arc().innerRadius(radius * 0.62).outerRadius(radius * 0.62);
@@ -500,7 +501,7 @@ function drawPie(selector, data, options = {}) {
     .attr("transform", (d) => `translate(${labelArc.centroid(d)})`)
     .text((d) => `${d.data.value}%`);
 
-  if (options.showLegend) drawLegend(svg, data, width * 0.68, 44);
+  if (options.showLegend) drawLegend(svg, data, options.legendX || width * 0.68, 44);
 }
 
 function drawWaffle(selector, data, options = {}) {

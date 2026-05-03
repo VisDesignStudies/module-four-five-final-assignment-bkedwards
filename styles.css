@@ -101,6 +101,10 @@ select {
   line-height: 1.55;
 }
 
+.study-panel h3.practice-heading {
+  margin-top: 34px;
+}
+
 .info-grid,
 .tutorial-grid,
 .summary-grid {
