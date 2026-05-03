@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Chart Comparison Study</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+  </head>
+  <body>
+    <header class="app-header">
+      <div>
+        <p class="eyebrow">Design Study</p>
+        <h1>Chart Comparison Study</h1>
+      </div>
+      <div class="progress-shell" aria-label="Study progress">
+        <div id="progressBar" class="progress-bar"></div>
+      </div>
+    </header>
+
+    <main id="app" class="app-shell" tabindex="-1"></main>
+
+    <template id="consentTemplate">
+      <section class="study-panel">
+        <div class="section-kicker">Consent Form</div>
+        <h2>Before You Begin</h2>
+        <p>
+          You are invited to participate in a short visualization study about how people compare values in
+          part-to-whole charts. The study includes a visual literacy test, a brief tutorial, and chart-reading
+          trials. Your responses, accuracy, response time, and confidence ratings will be recorded locally by
+          this website.
+        </p>
+        <div class="info-grid">
+          <div>
+            <h3>Task</h3>
+            <p>Identify or rank the largest categories in pie charts and waffle charts.</p>
+          </div>
+          <div>
+            <h3>Time</h3>
+            <p>The full prototype contains 63 study trials plus setup sections.</p>
+          </div>
+          <div>
+            <h3>Risk</h3>
+            <p>Risk is minimal and similar to ordinary computer-based survey activity.</p>
+          </div>
+          <div>
+            <h3>Voluntary</h3>
+            <p>You may stop at any time by closing the page. Do not continue if you do not consent.</p>
+          </div>
+        </div>
+        <label class="check-row">
+          <input id="consentCheck" type="checkbox">
+          <span>I am at least 18 years old and agree to participate in this study.</span>
+        </label>
+        <div class="actions">
+          <button id="consentNext" class="primary" type="button" disabled>Continue</button>
+        </div>
+      </section>
+    </template>
+
+    <template id="literacyTemplate">
+      <section class="study-panel">
+        <div class="section-kicker">Visual Literacy Test</div>
+        <h2 id="literacyTitle"></h2>
+        <p id="literacyPrompt" class="prompt"></p>
+        <div id="literacyChart" class="chart-frame"></div>
+        <fieldset id="literacyOptions" class="option-grid"></fieldset>
+        <div class="actions split">
+          <p id="literacyCounter" class="muted"></p>
+          <button id="literacyNext" class="primary" type="button" disabled>Submit Answer</button>
+        </div>
+      </section>
+    </template>
+
+    <template id="tutorialTemplate">
+      <section class="study-panel">
+        <div class="section-kicker">Tutorial</div>
+        <h2>How the Main Study Works</h2>
+        <div class="tutorial-grid">
+          <div>
+            <h3>Pie charts</h3>
+            <p>Each slice shows one category's share of the total.</p>
+            <div id="tutorialPie" class="mini-chart"></div>
+          </div>
+          <div>
+            <h3>Waffle charts</h3>
+            <p>Each square represents one percent of the total.</p>
+            <div id="tutorialWaffle" class="mini-chart"></div>
+          </div>
+        </div>
+        <div class="callout">
+          <p>
+            In simple trials with three categories, rank all categories from largest to smallest. In medium and
+            difficult trials, select the three largest categories in order. Some charts are sorted and others are
+            intentionally shuffled.
+          </p>
+        </div>
+        <h3>Practice</h3>
+        <p class="prompt">Select the three largest categories in order for the practice chart.</p>
+        <div id="practiceChart" class="chart-frame"></div>
+        <div id="practiceRanker" class="ranker"></div>
+        <p id="practiceFeedback" class="feedback" aria-live="polite"></p>
+        <div class="actions split">
+          <button id="practiceCheck" type="button">Check Practice Answer</button>
+          <button id="tutorialNext" class="primary" type="button" disabled>Begin Study</button>
+        </div>
+      </section>
+    </template>
+
+    <template id="trialTemplate">
+      <section class="study-panel trial-panel">
+        <div class="trial-topline">
+          <div>
+            <div class="section-kicker">Real Study</div>
+            <h2 id="trialTitle"></h2>
+          </div>
+          <div class="trial-count" id="trialCount"></div>
+        </div>
+        <p id="trialPrompt" class="prompt"></p>
+        <div id="trialChart" class="chart-frame chart-large"></div>
+        <div id="trialRanker" class="ranker"></div>
+        <label class="confidence-label" for="confidenceSlider">
+          Confidence: <span id="confidenceValue">3</span> / 5
+        </label>
+        <input id="confidenceSlider" class="confidence-slider" type="range" min="1" max="5" value="3">
+        <div class="actions split">
+          <button id="quitDownload" type="button">Download Partial Results</button>
+          <button id="trialNext" class="primary" type="button" disabled>Submit</button>
+        </div>
+      </section>
+    </template>
+
+    <template id="completeTemplate">
+      <section class="study-panel">
+        <div class="section-kicker">Complete</div>
+        <h2>Thank You</h2>
+        <p>
+          The study is complete. Download the results file before closing the page. The JSON export includes
+          trial conditions, answers, response time, confidence, and accuracy scoring.
+        </p>
+        <div class="summary-grid">
+          <div>
+            <span id="summaryTrials" class="summary-number"></span>
+            <span>Trials completed</span>
+          </div>
+          <div>
+            <span id="summaryAccuracy" class="summary-number"></span>
+            <span>Exact accuracy</span>
+          </div>
+          <div>
+            <span id="summaryTime" class="summary-number"></span>
+            <span>Median response time</span>
+          </div>
+        </div>
+        <div class="actions">
+          <button id="downloadJson" class="primary" type="button">Download JSON</button>
+          <button id="downloadCsv" type="button">Download CSV</button>
+          <button id="restartStudy" type="button">Restart</button>
+        </div>
+      </section>
+    </template>
+
+    <script src="app.js"></script>
+  </body>
+</html>
