@@ -15,13 +15,12 @@ The simplest setup is Google Sheets plus Google Apps Script:
 5. Set access to allow anyone with the link to submit.
 6. Copy the Web App URL into `config.js` as `responseEndpoint`.
 
-Completed participants will be posted to the sheet and also saved in local
-browser storage as a fallback.
+Completed participants will be posted to the sheet.
 
 ## Admin CSV
 
 To let the admin page read a central CSV, publish the response sheet as CSV and
-paste that URL into `config.js` as `adminCsvUrl`. The admin dashboard will merge
-remote CSV rows with any local fallback responses.
+paste that URL into `config.js` as `adminCsvUrl`. The admin dashboard reads that
+central CSV.
 
 The admin page is available at `admin.html` or `/admin/`.

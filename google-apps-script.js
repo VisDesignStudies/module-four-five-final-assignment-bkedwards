@@ -1,5 +1,16 @@
 const SHEET_NAME = "Responses";
 
+function doGet() {
+  const sheet = getSheet();
+  return ContentService
+    .createTextOutput(JSON.stringify({
+      ok: true,
+      sheetName: sheet.getName(),
+      lastRow: sheet.getLastRow()
+    }))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
 function doPost(e) {
   const sheet = getSheet();
   const payload = JSON.parse(e.postData.contents);

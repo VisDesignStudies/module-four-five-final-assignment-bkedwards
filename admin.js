@@ -1,18 +1,8 @@
-const STORAGE_KEY = "chartComparisonStudyResults";
-
 const participantCount = document.querySelector("#participantCount");
 const trialCount = document.querySelector("#trialCount");
 const accuracyRate = document.querySelector("#accuracyRate");
 const conditionRows = document.querySelector("#conditionRows");
 const participantRows = document.querySelector("#participantRows");
-
-function getStoredResults() {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-  } catch {
-    return [];
-  }
-}
 
 async function renderAdmin() {
   const results = await getAllResults();
@@ -100,23 +90,9 @@ function exportAllCsv() {
   });
 }
 
-function clearResults() {
-  const confirmed = window.confirm("Clear all locally stored study results from this browser?");
-  if (!confirmed) return;
-  localStorage.removeItem(STORAGE_KEY);
-  renderAdmin();
-}
-
 async function getAllResults() {
-  const localResults = getStoredResults();
   const remoteRows = await getRemoteRows();
-  const remoteResults = rowsToResults(remoteRows);
-  const byParticipant = new Map();
-
-  localResults.forEach((result) => byParticipant.set(result.participantId, result));
-  remoteResults.forEach((result) => byParticipant.set(result.participantId, result));
-
-  return [...byParticipant.values()];
+  return rowsToResults(remoteRows);
 }
 
 async function getRemoteRows() {
@@ -128,7 +104,7 @@ async function getRemoteRows() {
     if (!response.ok) throw new Error(`CSV request failed: ${response.status}`);
     return parseCsv(await response.text());
   } catch (error) {
-    console.warn("Could not load remote CSV. Showing local fallback results.", error);
+    console.warn("Could not load remote CSV.", error);
     return [];
   }
 }
@@ -258,6 +234,5 @@ function downloadFile(filename, content, type) {
 
 document.querySelector("#exportAllJson").addEventListener("click", exportAllJson);
 document.querySelector("#exportAllCsv").addEventListener("click", exportAllCsv);
-document.querySelector("#clearResults").addEventListener("click", clearResults);
 
 renderAdmin();
