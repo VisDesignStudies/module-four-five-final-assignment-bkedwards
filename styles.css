@@ -10,6 +10,8 @@
   --gold: #d79a28;
   --danger: #a43f32;
   --shadow: 0 18px 50px rgba(32, 29, 24, 0.12);
+  --page-pad: clamp(14px, 2.4vw, 28px);
+  --panel-pad: clamp(20px, 3vw, 34px);
 }
 
 * {
@@ -35,14 +37,14 @@ select {
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  max-width: 1180px;
+  width: min(100%, 1280px);
   margin: 0 auto;
-  padding: 24px 24px 12px;
+  padding: 24px var(--page-pad) 12px;
 }
 
 .app-header h1 {
   margin: 0;
-  font-size: 26px;
+  font-size: clamp(22px, 2.2vw, 28px);
 }
 
 .eyebrow,
@@ -56,7 +58,7 @@ select {
 }
 
 .progress-shell {
-  width: min(34vw, 360px);
+  width: clamp(220px, 30vw, 380px);
   height: 10px;
   overflow: hidden;
   border: 1px solid var(--line);
@@ -72,15 +74,15 @@ select {
 }
 
 .app-shell {
-  max-width: 1180px;
+  width: min(100%, 1280px);
   margin: 0 auto;
-  padding: 20px 24px 42px;
+  padding: 20px var(--page-pad) 42px;
 }
 
 .study-panel {
   width: 100%;
-  min-height: 620px;
-  padding: 34px;
+  min-height: min(620px, calc(100vh - 150px));
+  padding: var(--panel-pad);
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--panel);
@@ -89,12 +91,12 @@ select {
 
 .study-panel h2 {
   margin: 0 0 16px;
-  font-size: 32px;
+  font-size: clamp(25px, 3vw, 34px);
 }
 
 .study-panel h3 {
   margin: 0 0 8px;
-  font-size: 18px;
+  font-size: clamp(17px, 1.7vw, 19px);
 }
 
 .study-panel p {
@@ -201,14 +203,14 @@ button:disabled {
   max-width: 780px;
   margin: 0 0 20px;
   color: var(--muted);
-  font-size: 18px;
+  font-size: clamp(16px, 1.7vw, 18px);
 }
 
 .chart-frame {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 320px;
+  min-height: clamp(260px, 38vh, 340px);
   margin: 18px 0 24px;
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -216,14 +218,19 @@ button:disabled {
 }
 
 .chart-large {
-  min-height: 420px;
+  min-height: clamp(310px, 48vh, 440px);
 }
 
 .mini-chart {
-  min-height: 220px;
+  min-height: clamp(180px, 25vh, 230px);
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.chart-frame svg,
+.mini-chart svg {
+  max-height: 100%;
 }
 
 .option-grid {
@@ -255,7 +262,7 @@ button:disabled {
 
 .ranker {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr));
   gap: 12px;
 }
 
@@ -334,7 +341,7 @@ button:disabled {
 }
 
 .summary-number {
-  font-size: 34px;
+  font-size: clamp(28px, 3vw, 36px);
   font-weight: 800;
   color: var(--accent);
 }
@@ -422,5 +429,153 @@ tr:last-child td {
   .chart-frame,
   .chart-large {
     min-height: 300px;
+  }
+}
+
+@media (min-width: 1180px) {
+  .trial-panel .ranker {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1080px) {
+  .app-header {
+    padding-top: 18px;
+  }
+
+  .study-panel {
+    min-height: auto;
+    box-shadow: 0 12px 34px rgba(32, 29, 24, 0.1);
+  }
+
+  .info-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .tutorial-grid,
+  .admin-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .chart-frame {
+    margin: 14px 0 20px;
+  }
+
+  .trial-panel .ranker {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  :root {
+    --page-pad: 10px;
+    --panel-pad: 16px;
+  }
+
+  .app-header {
+    gap: 14px;
+    padding-top: 14px;
+  }
+
+  .app-shell {
+    padding-top: 10px;
+    padding-bottom: 24px;
+  }
+
+  .study-panel {
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .info-grid,
+  .tutorial-grid,
+  .summary-grid,
+  .admin-grid,
+  .option-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .info-grid,
+  .tutorial-grid,
+  .summary-grid {
+    gap: 10px;
+    margin: 18px 0;
+  }
+
+  .info-grid > div,
+  .tutorial-grid > div,
+  .summary-grid > div,
+  .callout {
+    padding: 14px;
+  }
+
+  .chart-frame,
+  .chart-large {
+    min-height: 260px;
+  }
+
+  .mini-chart {
+    min-height: 180px;
+  }
+
+  .ranker,
+  .trial-panel .ranker {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .rank-choice,
+  .option-tile {
+    min-height: 44px;
+    padding: 10px 12px;
+  }
+
+  .actions,
+  .actions.split,
+  .trial-topline {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  button {
+    width: 100%;
+  }
+
+  .confidence-slider {
+    width: 100%;
+  }
+
+  th,
+  td {
+    padding: 10px 12px;
+  }
+}
+
+@media (max-width: 420px) {
+  .app-header h1 {
+    font-size: 21px;
+  }
+
+  .study-panel h2 {
+    font-size: 23px;
+  }
+
+  .chart-frame,
+  .chart-large {
+    min-height: 220px;
+  }
+
+  .mini-chart {
+    min-height: 160px;
+  }
+
+  .ranker,
+  .trial-panel .ranker {
+    grid-template-columns: 1fr;
+  }
+
+  .rank-number {
+    width: 26px;
+    height: 26px;
   }
 }
