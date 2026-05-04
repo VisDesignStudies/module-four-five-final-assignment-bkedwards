@@ -88,7 +88,7 @@ const state = {
   literacyIndex: 0,
   trialIndex: 0,
   trials: [],
-  datasetLabelOrders: {},
+  datasetAssignments: {},
   participantId: createParticipantId(),
   literacyResponses: [],
   trialResponses: [],
@@ -214,7 +214,7 @@ function showTutorial() {
 }
 
 function buildTrials() {
-  state.datasetLabelOrders = createDatasetLabelOrders();
+  state.datasetAssignments = createDatasetAssignments();
   const conditions = [
     { chartType: "pie", order: "sorted" },
     { chartType: "pie", order: "random" },
@@ -231,14 +231,23 @@ function buildTrials() {
         difficulty: dataset.difficulty,
         chartType: condition.chartType,
         order: condition.order,
-        data: makeChartData(dataset.values, condition.order, null, state.datasetLabelOrders[dataset.id])
+        data: makeChartData(dataset.values, condition.order, null, state.datasetAssignments[dataset.id])
       });
     });
   });
 
-  const checkOneData = makeChartData([60, 25, 15], "sorted", null, [3, 6, 1]);
-  const checkTwoData = makeChartData([45, 35, 20], "random", [2, 1, 0], [5, 2, 8]);
-  const checkThreeData = makeChartData([20, 55, 25], "random", [0, 2, 1], [7, 4, 0]);
+  const checkOneData = makeChartData([60, 25, 15], "sorted", null, {
+    labelOrder: [3, 6, 1],
+    colorOrder: [5, 0, 7]
+  });
+  const checkTwoData = makeChartData([45, 35, 20], "random", [2, 1, 0], {
+    labelOrder: [5, 2, 8],
+    colorOrder: [1, 6, 3]
+  });
+  const checkThreeData = makeChartData([20, 55, 25], "random", [0, 2, 1], {
+    labelOrder: [7, 4, 0],
+    colorOrder: [2, 8, 5]
+  });
   const checks = [
     {
       id: "check-select-named-category",
@@ -372,20 +381,24 @@ function showComplete() {
   document.querySelector("#restartStudy").addEventListener("click", () => window.location.reload());
 }
 
-function createDatasetLabelOrders() {
-  return datasets.reduce((orders, dataset) => {
-    orders[dataset.id] = shuffle(d3.range(categoryNames.length)).slice(0, dataset.values.length);
-    return orders;
+function createDatasetAssignments() {
+  return datasets.reduce((assignments, dataset) => {
+    assignments[dataset.id] = {
+      labelOrder: shuffle(d3.range(categoryNames.length)).slice(0, dataset.values.length),
+      colorOrder: shuffle(d3.range(colors.length)).slice(0, dataset.values.length)
+    };
+    return assignments;
   }, {});
 }
 
-function makeChartData(values, order, fixedOrder, labelOrder) {
-  const labels = labelOrder || d3.range(values.length);
+function makeChartData(values, order, fixedOrder, assignment = {}) {
+  const labels = assignment.labelOrder || d3.range(values.length);
+  const colorOrder = assignment.colorOrder || d3.range(values.length);
   const ranked = values
     .map((value, index) => ({
       label: categoryNames[labels[index]],
       value,
-      color: colors[labels[index]],
+      color: colors[colorOrder[index]],
       originalIndex: index
     }))
     .sort((a, b) => b.value - a.value)
@@ -642,7 +655,7 @@ function buildResultPayload() {
     participantId: state.participantId,
     exportedAt: new Date().toISOString(),
     completedAt: new Date().toISOString(),
-    datasetLabelOrders: state.datasetLabelOrders,
+    datasetAssignments: state.datasetAssignments,
     literacyResponses: state.literacyResponses,
     trialResponses: state.trialResponses
   };
