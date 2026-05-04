@@ -429,7 +429,9 @@ function scoreAnswer(answer, correctAnswer, data) {
   const rankByLabel = new Map(data.map((item) => [item.label, item.originalRank]));
   const idealRanks = correctAnswer.map((label) => rankByLabel.get(label));
   const selectedRanks = answer.map((label) => rankByLabel.get(label));
-  const maxDistance = data.length * correctAnswer.length;
+  const n = data.length;
+  const k = correctAnswer.length;
+  const maxDistance = n === 3 ? 4 : n === 4 ? 5 : n * k - 9;
   const distance = selectedRanks.reduce((sum, rank, index) => {
     const ideal = idealRanks[index] ?? index + 1;
     return sum + Math.abs((rank ?? data.length + 1) - ideal);
