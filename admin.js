@@ -122,23 +122,29 @@ function rowsToResults(rows) {
     completedAt: participantRows[0].completedAt,
     exportedAt: participantRows[0].completedAt,
     literacyResponses: [],
-    trialResponses: participantRows.map((row) => ({
-      trialId: row.trialId,
-      trialType: row.trialType,
-      datasetId: row.datasetId || null,
-      difficulty: row.difficulty,
-      chartType: row.chartType,
-      order: row.order,
-      categoryCount: Number(row.categoryCount),
-      answer: splitList(row.answer),
-      correctAnswer: splitList(row.correctAnswer),
-      exactCorrect: parseBoolean(row.exactCorrect),
-      partialScore: Number(row.partialScore),
-      responseTimeMs: Number(row.responseTimeMs),
-      confidence: Number(row.confidence),
-      values: parseJsonCell(row.valuesJson, [])
-    }))
+    trialResponses: participantRows.map(parseTrialRow)
   }));
+}
+
+function parseTrialRow(row) {
+  const answer = splitList(row.answer);
+  const correctAnswer = splitList(row.correctAnswer);
+  return {
+    trialId: row.trialId,
+    trialType: row.trialType,
+    datasetId: row.datasetId || null,
+    difficulty: row.difficulty,
+    chartType: row.chartType,
+    order: row.order,
+    categoryCount: Number(row.categoryCount),
+    answer,
+    correctAnswer,
+    exactCorrect: parseBoolean(row.exactCorrect) || arraysEqual(answer, correctAnswer),
+    partialScore: Number(row.partialScore),
+    responseTimeMs: Number(row.responseTimeMs),
+    confidence: Number(row.confidence),
+    values: parseJsonCell(row.valuesJson, [])
+  };
 }
 
 function parseCsv(csv) {
@@ -195,7 +201,12 @@ function parseJsonCell(value, fallback) {
 
 function parseBoolean(value) {
   if (typeof value === "boolean") return value;
-  return String(value).trim().toLowerCase() === "true";
+  const normalized = String(value).trim().toLowerCase();
+  return ["true", "1", "yes", "y"].includes(normalized);
+}
+
+function arraysEqual(a, b) {
+  return a.length === b.length && a.every((value, index) => value === b[index]);
 }
 
 function groupBy(items, keyFn) {
