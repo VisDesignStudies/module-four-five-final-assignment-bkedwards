@@ -472,12 +472,14 @@ function updateRankButtons(container) {
 }
 
 function drawPie(selector, data, options = {}) {
-  const width = options.width || 720;
-  const height = options.height || 360;
-  const radius = Math.min(width * 0.42, height * 0.44);
+  const compact = shouldUseCompactChart(options);
+  const width = compact ? 420 : options.width || 720;
+  const height = compact && options.showLegend ? Math.max(420, 292 + data.length * 32) : options.height || 360;
+  const radius = compact ? 124 : Math.min(width * 0.42, height * 0.44);
   const svg = createSvg(selector, width, height);
-  const centerX = options.centerX || width * 0.36;
-  const group = svg.append("g").attr("transform", `translate(${centerX}, ${height / 2})`);
+  const centerX = compact ? width / 2 : options.centerX || width * 0.36;
+  const centerY = compact ? 144 : height / 2;
+  const group = svg.append("g").attr("transform", `translate(${centerX}, ${centerY})`);
   const pie = d3.pie().sort(null).value((d) => d.value);
   const arc = d3.arc().innerRadius(0).outerRadius(radius);
   const labelArc = d3.arc().innerRadius(radius * 0.62).outerRadius(radius * 0.62);
@@ -501,12 +503,17 @@ function drawPie(selector, data, options = {}) {
     .attr("transform", (d) => `translate(${labelArc.centroid(d)})`)
     .text((d) => `${d.data.value}%`);
 
-  if (options.showLegend) drawLegend(svg, data, options.legendX || width * 0.68, 44);
+  if (options.showLegend) {
+    const legendX = compact ? 76 : options.legendX || width * 0.68;
+    const legendY = compact ? 298 : 44;
+    drawLegend(svg, data, legendX, legendY, { compact });
+  }
 }
 
 function drawWaffle(selector, data, options = {}) {
-  const width = options.width || 720;
-  const height = options.height || 360;
+  const compact = shouldUseCompactChart(options);
+  const width = compact ? 420 : options.width || 720;
+  const height = compact && options.showLegend ? Math.max(420, 292 + data.length * 32) : options.height || 360;
   const svg = createSvg(selector, width, height);
   const cells = [];
   data.forEach((item) => {
@@ -516,10 +523,10 @@ function drawWaffle(selector, data, options = {}) {
   while (cells.length < 100) cells.push(data[data.length - 1]);
   cells.length = 100;
 
-  const cellSize = Math.min((width * 0.54) / 10, (height * 0.74) / 10);
+  const cellSize = compact ? 24 : Math.min((width * 0.54) / 10, (height * 0.74) / 10);
   const gridWidth = cellSize * 10;
-  const startX = width * 0.08;
-  const startY = (height - gridWidth) / 2;
+  const startX = compact ? (width - gridWidth) / 2 : width * 0.08;
+  const startY = compact ? 26 : (height - gridWidth) / 2;
 
   svg
     .append("g")
@@ -533,23 +540,34 @@ function drawWaffle(selector, data, options = {}) {
     .attr("rx", 2)
     .attr("fill", (d) => d.color);
 
-  if (options.showLegend) drawLegend(svg, data, width * 0.68, 44);
+  if (options.showLegend) {
+    drawLegend(svg, data, compact ? 76 : width * 0.68, compact ? 298 : 44, { compact });
+  }
 }
 
-function drawLegend(svg, data, x, y) {
+function drawLegend(svg, data, x, y, options = {}) {
+  const rowGap = options.compact ? 32 : 28;
+  const swatch = options.compact ? 18 : 16;
+  const textX = options.compact ? 28 : 24;
+  const textY = options.compact ? 15 : 13;
   const legend = svg.append("g").attr("class", "legend").attr("transform", `translate(${x}, ${y})`);
   const rows = legend
     .selectAll("g")
     .data(data)
     .join("g")
-    .attr("transform", (_, i) => `translate(0, ${i * 28})`);
+    .attr("transform", (_, i) => `translate(0, ${i * rowGap})`);
 
-  rows.append("rect").attr("width", 16).attr("height", 16).attr("rx", 3).attr("fill", (d) => d.color);
+  rows.append("rect").attr("width", swatch).attr("height", swatch).attr("rx", 3).attr("fill", (d) => d.color);
   rows
     .append("text")
-    .attr("x", 24)
-    .attr("y", 13)
+    .attr("x", textX)
+    .attr("y", textY)
     .text((d) => `${d.label}`);
+}
+
+function shouldUseCompactChart(options = {}) {
+  if (options.compact === false) return false;
+  return window.matchMedia("(max-width: 640px)").matches;
 }
 
 function drawLiteracyChart(question) {

@@ -511,11 +511,25 @@ tr:last-child td {
 
   .chart-frame,
   .chart-large {
-    min-height: 260px;
+    min-height: 0;
   }
 
   .mini-chart {
-    min-height: 180px;
+    min-height: 0;
+  }
+
+  .chart-frame svg,
+  .mini-chart svg {
+    width: 100%;
+  }
+
+  .legend text,
+  .chart-label {
+    font-size: 16px;
+  }
+
+  .chart-label {
+    font-weight: 700;
   }
 
   .ranker,
@@ -562,11 +576,11 @@ tr:last-child td {
 
   .chart-frame,
   .chart-large {
-    min-height: 220px;
+    min-height: 0;
   }
 
   .mini-chart {
-    min-height: 160px;
+    min-height: 0;
   }
 
   .ranker,
