@@ -359,11 +359,13 @@ function showComplete() {
   const exact = experimental.length
     ? experimental.filter((trial) => trial.exactCorrect).length / experimental.length
     : 0;
+  const partial = mean(experimental.map((trial) => trial.partialScore));
   const times = experimental.map((trial) => trial.responseTimeMs).sort((a, b) => a - b);
   const median = times.length ? times[Math.floor(times.length / 2)] : 0;
 
   document.querySelector("#summaryTrials").textContent = state.trialResponses.length;
   document.querySelector("#summaryAccuracy").textContent = `${Math.round(exact * 100)}%`;
+  document.querySelector("#summaryPartialScore").textContent = partial.toFixed(2);
   document.querySelector("#summaryTime").textContent = `${(median / 1000).toFixed(1)}s`;
   document.querySelector("#downloadJson").addEventListener("click", downloadJson);
   document.querySelector("#downloadCsv").addEventListener("click", downloadCsv);
@@ -731,6 +733,11 @@ function shuffle(items) {
 
 function arraysEqual(a, b) {
   return a.length === b.length && a.every((value, index) => value === b[index]);
+}
+
+function mean(values) {
+  const clean = values.filter((value) => Number.isFinite(Number(value)));
+  return clean.length ? clean.reduce((sum, value) => sum + Number(value), 0) / clean.length : 0;
 }
 
 function capitalize(value) {

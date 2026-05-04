@@ -1,6 +1,7 @@
 const participantCount = document.querySelector("#participantCount");
 const trialCount = document.querySelector("#trialCount");
 const accuracyRate = document.querySelector("#accuracyRate");
+const partialScoreRate = document.querySelector("#partialScoreRate");
 const conditionRows = document.querySelector("#conditionRows");
 const participantRows = document.querySelector("#participantRows");
 
@@ -13,6 +14,7 @@ async function renderAdmin() {
   participantCount.textContent = results.length;
   trialCount.textContent = experimental.length;
   accuracyRate.textContent = formatPercent(mean(experimental.map((trial) => trial.exactCorrect ? 1 : 0)));
+  partialScoreRate.textContent = formatScore(mean(experimental.map((trial) => trial.partialScore)));
 
   renderConditionRows(experimental);
   renderParticipantRows(results);
@@ -24,34 +26,38 @@ function renderConditionRows(trials) {
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([condition, items]) => {
       const accuracy = mean(items.map((trial) => trial.exactCorrect ? 1 : 0));
+      const partialScore = mean(items.map((trial) => trial.partialScore));
       const rt = median(items.map((trial) => trial.responseTimeMs));
       const confidence = mean(items.map((trial) => trial.confidence));
       return `<tr>
         <td>${condition}</td>
         <td>${items.length}</td>
         <td>${formatPercent(accuracy)}</td>
+        <td>${formatScore(partialScore)}</td>
         <td>${formatSeconds(rt)}</td>
         <td>${confidence ? confidence.toFixed(1) : "0.0"}</td>
       </tr>`;
     });
 
-  conditionRows.innerHTML = rows.join("") || `<tr><td colspan="5">No results yet.</td></tr>`;
+  conditionRows.innerHTML = rows.join("") || `<tr><td colspan="6">No results yet.</td></tr>`;
 }
 
 function renderParticipantRows(results) {
   const rows = results.map((result) => {
     const experimental = result.trialResponses.filter((trial) => trial.trialType === "experimental");
     const accuracy = mean(experimental.map((trial) => trial.exactCorrect ? 1 : 0));
+    const partialScore = mean(experimental.map((trial) => trial.partialScore));
     const rt = median(experimental.map((trial) => trial.responseTimeMs));
     return `<tr>
       <td>${result.participantId}</td>
       <td>${new Date(result.completedAt || result.exportedAt).toLocaleString()}</td>
       <td>${formatPercent(accuracy)}</td>
+      <td>${formatScore(partialScore)}</td>
       <td>${formatSeconds(rt)}</td>
     </tr>`;
   });
 
-  participantRows.innerHTML = rows.join("") || `<tr><td colspan="4">No participants yet.</td></tr>`;
+  participantRows.innerHTML = rows.join("") || `<tr><td colspan="5">No participants yet.</td></tr>`;
 }
 
 function exportAllJson() {
@@ -126,7 +132,7 @@ function rowsToResults(rows) {
       categoryCount: Number(row.categoryCount),
       answer: splitList(row.answer),
       correctAnswer: splitList(row.correctAnswer),
-      exactCorrect: row.exactCorrect === "true" || row.exactCorrect === true,
+      exactCorrect: parseBoolean(row.exactCorrect),
       partialScore: Number(row.partialScore),
       responseTimeMs: Number(row.responseTimeMs),
       confidence: Number(row.confidence),
@@ -187,6 +193,11 @@ function parseJsonCell(value, fallback) {
   }
 }
 
+function parseBoolean(value) {
+  if (typeof value === "boolean") return value;
+  return String(value).trim().toLowerCase() === "true";
+}
+
 function groupBy(items, keyFn) {
   return items.reduce((groups, item) => {
     const key = keyFn(item);
@@ -209,6 +220,10 @@ function median(values) {
 
 function formatPercent(value) {
   return `${Math.round(value * 100)}%`;
+}
+
+function formatScore(value) {
+  return Number.isFinite(value) ? value.toFixed(2) : "0.00";
 }
 
 function formatSeconds(ms) {
