@@ -104,6 +104,7 @@ function cloneTemplate(id) {
   app.innerHTML = "";
   const template = document.querySelector(id);
   app.appendChild(template.content.cloneNode(true));
+  window.scrollTo(0, 0);
   app.focus();
 }
 
